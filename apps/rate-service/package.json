@@ -1,0 +1,75 @@
+{
+  "name": "@forex-marketplace/rate-service",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "@nx/esbuild:esbuild",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "defaultConfiguration": "production",
+        "options": {
+          "platform": "node",
+          "outputPath": "rate-service/dist",
+          "format": [
+            "cjs"
+          ],
+          "bundle": false,
+          "main": "rate-service/src/main.ts",
+          "tsConfig": "rate-service/tsconfig.app.json",
+          "assets": [
+            "rate-service/src/assets"
+          ],
+          "esbuildOptions": {
+            "sourcemap": true,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        },
+        "configurations": {
+          "development": {},
+          "production": {
+            "esbuildOptions": {
+              "sourcemap": false,
+              "outExtension": {
+                ".js": ".js"
+              }
+            }
+          }
+        }
+      },
+      "serve": {
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@forex-marketplace/rate-service:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@forex-marketplace/rate-service:build:development"
+          },
+          "production": {
+            "buildTarget": "@forex-marketplace/rate-service:build:production"
+          }
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.13.0",
+    "axios": "^1.8.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@grpc/proto-loader": "^0.7.13",
+    "grpc-tools": "^1.13.0"
+  }
+}

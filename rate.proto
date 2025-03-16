@@ -1,0 +1,14 @@
+syntax = "proto3";
+package rate;
+
+service RateService {
+  rpc GetRate (RateRequest) returns (RateResponse);
+}
+
+message RateRequest {
+  string currency = 1;
+}
+
+message RateResponse {
+  float rate = 1;
+}

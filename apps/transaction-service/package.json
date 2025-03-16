@@ -1,0 +1,74 @@
+{
+  "name": "@forex-marketplace/transaction-service",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "@nx/esbuild:esbuild",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "defaultConfiguration": "production",
+        "options": {
+          "platform": "node",
+          "outputPath": "transaction-service/dist",
+          "format": [
+            "cjs"
+          ],
+          "bundle": false,
+          "main": "transaction-service/src/main.ts",
+          "tsConfig": "transaction-service/tsconfig.app.json",
+          "assets": [
+            "transaction-service/src/assets"
+          ],
+          "esbuildOptions": {
+            "sourcemap": true,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        },
+        "configurations": {
+          "development": {},
+          "production": {
+            "esbuildOptions": {
+              "sourcemap": false,
+              "outExtension": {
+                ".js": ".js"
+              }
+            }
+          }
+        }
+      },
+      "serve": {
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@forex-marketplace/transaction-service:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@forex-marketplace/transaction-service:build:development"
+          },
+          "production": {
+            "buildTarget": "@forex-marketplace/transaction-service:build:production"
+          }
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "amqplib": "^0.10.5",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
+    "express": "^4.21.2",
+    "pg": "^8.14.0",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.21"
+  }
+}

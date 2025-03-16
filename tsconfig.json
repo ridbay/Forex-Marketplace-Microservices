@@ -8,6 +8,27 @@
     },
     {
       "path": "./apps/forex-marketplace"
+    },
+    {
+      "path": "./wallet-service"
+    },
+    {
+      "path": "./transaction-service"
+    },
+    {
+      "path": "./user-auth-service"
+    },
+    {
+      "path": "./rate-service"
+    },
+    {
+      "path": "./notification-service"
+    },
+    {
+      "path": "./logging"
+    },
+    {
+      "path": "./error-handling"
     }
   ]
 }
