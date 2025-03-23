@@ -1,82 +1,136 @@
-# ForexMarketplace
+https://bitbucket.org/ridbay/forex-marketplace-microservices/src/main/
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+# Forex Marketplace Microservices
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+This project implements a simple foreign exchange (Forex) marketplace using a microservices architecture. It allows users to buy and sell forex, with conversion rates fetched from an external API.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/node?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## Project Structure
 
-## Finish your CI setup
+This project is a monorepo managed using Nx. The repository is structured as follows:
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/f5BZsQgXzl)
+- `apps/`: Contains the individual microservices.
+- `libs/`: Contains shared libraries used across multiple services.
 
+## Services
 
-## Run tasks
+### 1. Wallet Service
 
-To run the dev server for your app, use:
+- **Description:** Manages user wallet balances and transactions.
+- **Technology:** Express.js, TypeScript, TypeORM, PostgreSQL.
+- **Endpoints:**
 
-```sh
-npx nx serve forex-marketplace
-```
+  - `GET /wallets/:userId/balance`: Get user's wallet balance.
+  - `POST /wallets/:userId/credit`: Credit user's wallet.
 
-To create a production bundle:
+- **Setup:**
+  1.  Install dependencies: `npm install`
+  2.  Set environment variables.
+  3.  Run migrations: `npx nx run wallet-service:migrate`
+  4.  Start the service: `npx nx serve wallet-service`
+- **Environment Variables:**
+  - `DATABASE_URL`: PostgreSQL connection string.
+  - `PORT`: Service port.
 
-```sh
-npx nx build forex-marketplace
-```
+### 2. Transaction and Order Service
 
-To see all available targets to run for a project, run:
+- **Description:** Handles forex buy/sell orders and transaction history.
+- **Technology:** Express.js, TypeScript, TypeORM, PostgreSQL.
+- **Endpoints:**
 
-```sh
-npx nx show project forex-marketplace
-```
+  - `POST /orders/buy`: Place a buy order.
+  - `POST /orders/sell`: Place a sell order.
+  - `GET /transactions/:userId`: Get user's transaction history.
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+- **Setup:**
+  1.  Install dependencies: `npm install`
+  2.  Set environment variables.
+  3.  Run migrations: `npx nx run transaction-order-service:migrate`
+  4.  Start the service: `npx nx serve transaction-order-service`
+- **Environment Variables:**
+  - `DATABASE_URL`: PostgreSQL connection string.
+  - `PORT`: Service port.
+  - `RATE_SERVICE_URL`: gRPC URL of the Rate Service.
+  - `RABBITMQ_URL`: URL to connect to RabbitMQ
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### 3. User and Authentication Service
 
-## Add new projects
+- **Description:** Manages user registration, login, and profile.
+- **Technology:** Express.js, TypeScript, TypeORM, PostgreSQL, JWT.
+- **Endpoints:**
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+  - `POST /users/register`: Register a new user.
+  - `POST /users/login`: Login user and get JWT token.
+  - `GET /users/profile`: Get user profile (requires JWT).
 
-Use the plugin's generator to create new projects.
+- **Setup:**
+  1.  Install dependencies: `npm install`
+  2.  Set environment variables.
+  3.  Run migrations: `npx nx run user-auth-service:migrate`
+  4.  Start the service: `npx nx serve user-auth-service`
+- **Environment Variables:**
+  - `DATABASE_URL`: PostgreSQL connection string.
+  - `PORT`: Service port.
+  - `JWT_SECRET`: Secret key for JWT.
 
-To generate a new application, use:
+### 4. Rate Service
 
-```sh
-npx nx g @nx/node:app demo
-```
+- **Description:** Fetches forex rates from ExchangeRate-API and exposes them via gRPC.
+- **Technology:** Express.js, TypeScript, gRPC.
 
-To generate a new library, use:
+- **Setup:**
+  1.  Install dependencies: `npm install`
+  2.  Set environment variables.
+  3.  Start the service: `npx nx serve rate-service`
+- **Environment Variables:**
+  - `EXCHANGE_RATE_API`: API key for ExchangeRate-API.
+  - `EXCHANGE_RATE_API_URL`: URL for ExchangeRate-API.
+  - `PORT`: gRPC service port.
 
-```sh
-npx nx g @nx/node:lib mylib
-```
+### 5. Notification Service
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+- **Description:** Sends notifications to users after successful transactions using RabbitMQ.
+- **Technology:** Express.js, TypeScript, RabbitMQ.
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- **Setup:**
+  1.  Install dependencies: `npm install`
+  2.  Set environment variables.
+  3.  Start the service: `npx nx serve notification-service`
+- **Environment Variables:**
+  - `RABBITMQ_URL`: URL to connect to RabbitMQ.
+  - `PORT`: Service port.
 
+## Shared Libraries
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- `libs/shared/logging`: Provides centralized logging functionality.
+- `libs/shared/error-handling`: Provides standardized error handling.
 
-## Install Nx Console
+## Testing
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+- Unit tests are implemented using Jest.
+- Run tests: `npx nx test <service-name>` (e.g., `npx nx test wallet-service`).
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Running the Project
 
-## Useful links
+1.  Install Nx globally: `npm install -g nx`
+2.  Clone the repository.
+3.  Install dependencies: `npm install`
+4.  Set up environment variables for each service.
+5.  Run migrations for each service: `npx nx run <service-name>:migrate`
+6.  Start all services: `npx nx run-many --target=serve --all`
 
-Learn more:
+## Database Setup
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/node?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- PostgreSQL is used for data storage.
+- Ensure PostgreSQL is installed and running.
+- Create a database and provide the connection string in the environment variables.
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## RabbitMQ Setup
+
+- RabbitMQ is used for job queue.
+- Ensure RabbitMQ is installed and running.
+- Provide the RabbitMQ connection string in the environment variables.
+
+## External API
+
+- ExchangeRate-API is used to fetch forex rates.
+- Obtain an API key from ExchangeRate-API and provide it in the environment variables.

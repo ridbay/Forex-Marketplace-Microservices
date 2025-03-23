@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { getRepository } from 'typeorm';
+import { AppDataSource } from './data-source';
 import { Transaction } from './entities/Transaction';
 import publishToRabbitMQ from './rabbitmq';
 const app = express();
@@ -13,7 +13,7 @@ app.post('/order', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Invalid transaction type' });
   }
 
-  const transactionRepo = getRepository(Transaction);
+  const transactionRepo = AppDataSource.getRepository(Transaction);
   const transaction = transactionRepo.create({
     userId,
     currencyPair,
@@ -35,7 +35,7 @@ app.post('/order', async (req: Request, res: Response) => {
 
 // Endpoint to view transaction history
 app.get('/transactions/:userId', async (req, res) => {
-  const transactions = await getRepository(Transaction).find({
+  const transactions = await AppDataSource.getRepository(Transaction).find({
     where: { userId: req.params.userId },
     order: { createdAt: 'DESC' },
   });
@@ -43,5 +43,12 @@ app.get('/transactions/:userId', async (req, res) => {
   res.json(transactions);
 });
 
-// Start the server
-app.listen(3002, () => console.log('Transaction Service Running on Port 3002'));
+// Initialize database connection before starting the server
+AppDataSource.initialize()
+  .then(() => {
+    // Start the server
+    app.listen(3002, () =>
+      console.log('Transaction Service Running on Port 3002')
+    );
+  })
+  .catch((error) => console.log(error));

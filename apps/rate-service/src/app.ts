@@ -1,9 +1,9 @@
 import express from 'express';
-import * as dotenv from 'dotenv';
+
 import { fetchForexRate } from './utils/fetchForexRate';
-dotenv.config();
-const host = process.env.HOST ?? 'localhost';
-const port = process.env.PORT ? Number(process.env.PORT) : 3000;
+import config from './config/config';
+const host = config.DB.DB_HOST;
+const port = config.DB.DB_PORT;
 
 const app = express();
 

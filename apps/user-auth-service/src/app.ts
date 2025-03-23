@@ -5,13 +5,10 @@ import { User } from './entities/User';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 import './types/express';
-
+import Config from './config/config';
 const app = express();
 app.use(express.json());
 
-const SECRET_KEY = 'your-secret-key'; // Replace with environment variable
-
-// Middleware to verify JWT token
 function authenticateToken(
   req: Request | any,
   res: Response,
@@ -22,7 +19,7 @@ function authenticateToken(
 
   if (!token) return res.sendStatus(401);
 
-  jwt.verify(token, SECRET_KEY, (err: any, user: any) => {
+  jwt.verify(token, Config.JWT_SECRET, (err: any, user: any) => {
     if (err) return res.sendStatus(403);
     req.user = user;
     next();
@@ -30,7 +27,7 @@ function authenticateToken(
 }
 
 // Endpoint to register a new user
-app.post('/register', async (req, res) => {
+app.post('/users/register', async (req, res) => {
   const { email, password } = req.body;
 
   const userRepository = AppDataSource.getRepository(User);
@@ -47,7 +44,7 @@ app.post('/register', async (req, res) => {
 });
 
 // Endpoint to log in and generate a JWT token
-app.post('/login', async (req, res) => {
+app.post('/users/login', async (req, res) => {
   const { email, password } = req.body;
 
   const userRepository = AppDataSource.getRepository(User);
@@ -57,14 +54,18 @@ app.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, {
-    expiresIn: '1h',
-  });
+  const token = jwt.sign(
+    { id: user.id, email: user.email },
+    Config.JWT_SECRET,
+    {
+      expiresIn: '1h',
+    }
+  );
   res.json({ token });
 });
 
 // Protected endpoint example
-app.get('/profile', authenticateToken, (req, res) => {
+app.get('/users/profile', authenticateToken, (req, res) => {
   res.json({ user: req.user });
 });
 

@@ -1,13 +1,12 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+import Config from './config/config';
 import * as amqp from 'amqplib';
 import { sendEmail } from './utils/sendEmail';
 
 async function start() {
   try {
-    const connection = await amqp.connect(
-      process.env.RABBITMQ_URL || 'amqp://localhost'
-    );
+    const connection = await amqp.connect(Config.RABBITMQ_URL);
     const channel = await connection.createChannel();
 
     const queue = 'notifications';
