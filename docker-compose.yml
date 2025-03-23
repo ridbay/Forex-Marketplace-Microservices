@@ -1,16 +1,126 @@
-version: '3'
+version: '3.8'
+
 services:
-  postgres:
-    image: postgres:13
+  # Postgres Database
+  db:
+    image: postgres:15-alpine
+    container_name: forex-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: forex_marketplace
+      POSTGRES_USER: forex_user
+      POSTGRES_PASSWORD: forex_password
+      POSTGRES_DB: forex_db
     ports:
       - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - forex-network
 
-rabbitmq:
-  image: rabbitmq:3-management
-  ports:
-    - '5672:5672'
-    - '15672:15672'
+  # RabbitMQ for Job Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: forex-rabbitmq
+    ports:
+      - '5672:5672' # AMQP protocol
+      - '15672:15672' # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: forex_user
+      RABBITMQ_DEFAULT_PASS: forex_password
+    networks:
+      - forex-network
+
+  # Wallet Service
+  wallet-service:
+    build:
+      context: ./wallet-service
+      dockerfile: Dockerfile
+    container_name: forex-wallet-service
+    ports:
+      - '3001:3001'
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: forex_user
+      DB_PASSWORD: forex_password
+      DB_NAME: forex_db
+    depends_on:
+      - db
+    networks:
+      - forex-network
+
+  # Transaction and Order Service
+  transaction-service:
+    build:
+      context: ./transaction-service
+      dockerfile: Dockerfile
+    container_name: forex-transaction-service
+    ports:
+      - '3002:3002'
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: forex_user
+      DB_PASSWORD: forex_password
+      DB_NAME: forex_db
+    depends_on:
+      - db
+    networks:
+      - forex-network
+
+  # User and Authentication Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: forex-auth-service
+    ports:
+      - '3003:3003'
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: forex_user
+      DB_PASSWORD: forex_password
+      DB_NAME: forex_db
+    depends_on:
+      - db
+    networks:
+      - forex-network
+
+  # Integration/Rate Service
+  rate-service:
+    build:
+      context: ./rate-service
+      dockerfile: Dockerfile
+    container_name: forex-rate-service
+    ports:
+      - '3004:3004'
+    environment:
+      EXCHANGE_RATE_API_KEY: your_exchange_rate_api_key
+    networks:
+      - forex-network
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: forex-notification-service
+    ports:
+      - '3005:3005'
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: forex_user
+      RABBITMQ_PASSWORD: forex_password
+    depends_on:
+      - rabbitmq
+    networks:
+      - forex-network
+
+# Networks
+networks:
+  forex-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  postgres_data:
